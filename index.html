@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo de Servicios - Grupo Axo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-container">
+        <div class="clock-login">
+            <div class="clock-time" id="clockTime">00:00:00</div>
+            <div class="clock-divider"></div>
+            <div class="clock-date" id="clockDate">Cargando fecha...</div>
+        </div>
+        <div class="login-box">
+            <h2><i class="fas fa-lock"></i> Ingreso Administrador</h2>
+            <input type="text" id="user" placeholder="Usuario">
+            <input type="password" id="pass" placeholder="Contraseña">
+            <button onclick="login()" id="loginBtn"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
+            <div class="login-error" id="loginError">❌ Usuario o contraseña incorrectos</div>
+            <div class="api-status" id="apiStatus"><i class="fas fa-check-circle"></i></div>
+        </div>
+    </div>
+</div>
+
+<!-- FEELSOCIAL -->
+<div class="feelsocial-container" id="feelsocialContainer">
+    <div class="feelsocial-window" id="feelsocialWindow">
+        <div class="feelsocial-header">
+            <span class="feelsocial-title"><i class="fas fa-comments"></i> FeelSocial</span>
+            <div class="feelsocial-controls">
+                <button class="fs-btn" onclick="minimizeFeelSocial()">−</button>
+                <button class="fs-btn" onclick="toggleFeelSocial()">×</button>
+            </div>
+        </div>
+        <div class="feelsocial-body">
+            <iframe class="feelsocial-iframe" id="feelsocialFrame" src="https://feelsocial.app/chat" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+            <div class="fs-overlay" id="fsOverlay"><i class="fas fa-spinner fa-spin"></i> Conectando...</div>
+        </div>
+        <div class="fs-footer">
+            <label class="auto-refresh"><input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh(this.checked)"> 🔄 Auto-refresh 60s</label>
+            <button class="iframe-btn" onclick="refreshFeelSocial()"><i class="fas fa-redo"></i></button>
+            <button class="iframe-btn primary" onclick="openFeelSocialNew()"><i class="fas fa-external-link-alt"></i></button>
+        </div>
+    </div>
+    <button class="fs-button" onclick="toggleFeelSocial()"><i class="fas fa-phone"></i></button>
+</div>
+
+<!-- COMUNICACIONES -->
+<div class="comms-container" id="commsContainer">
+    <div class="comms-window" id="commsWindow">
+        <div class="comms-header">
+            <span class="comms-title"><i class="fas fa-headset"></i> Llamadas y Mensajes</span>
+            <button class="comms-close" onclick="toggleComms()">×</button>
+        </div>
+        <div class="comms-body">
+            <a href="https://feelsocial.app/chat" target="_blank" class="comms-btn feel" onclick="toggleComms()">
+                <i class="fas fa-comments"></i> 💬 FeelSocial Chat
+            </a>
+            <a href="https://us8.five9.com/login/" target="_blank" class="comms-btn call" onclick="toggleComms()">
+                <i class="fas fa-phone-alt"></i> 📞 Llamadas
+            </a>
+        </div>
+    </div>
+    <button class="comms-button" onclick="toggleComms()"><i class="fas fa-phone-volume"></i></button>
+</div>
+
+<!-- MODO NOCTURNO -->
+<div class="theme-toggle-container" id="themeToggleContainer">
+    <button class="theme-toggle-button sun-mode" id="themeToggleButton" onclick="toggleDarkMode()">
+        <i class="fas fa-sun"></i><i class="fas fa-moon" style="display:none"></i>
+    </button>
+</div>
+
+<!-- APP PRINCIPAL -->
+<div class="container" id="app">
+    <div class="header">
+        <div class="header-top">
+            <div class="header-logo">
+                <img src="logo-axo.png" alt="Logo" class="logo-img">
+                <h1 class="header-title" id="headerTitle">Catálogo de Servicios - Grupo Axo</h1>
+            </div>
+            <button class="btn-back-catalog" id="btnBackCatalog" onclick="volverADatos()">
+                <i class="fas fa-arrow-left"></i> <span id="btnBackText">Catálogo</span>
+            </button>
+        </div>
+        <div class="nav-scroll">
+            <div class="nav-pills">
+                <a href="#" class="nav-pill active" id="navCatalogo" onclick="cargarCatalogo(); setActiveNav('navCatalogo'); return false;"><i class="fas fa-list"></i><span>Catálogo</span></a>
+                <a href="#" class="nav-pill" id="navEstructura" onclick="cargarEstructura(); setActiveNav('navEstructura'); return false;"><i class="fas fa-sitemap"></i><span>Estructura</span></a>
+                <a href="#" class="nav-pill" id="navWiffi" onclick="cargarWiffi(); setActiveNav('navWiffi'); return false;"><i class="fas fa-wifi"></i><span>Wiffi</span></a>
+                <a href="#" class="nav-pill" id="navInvSIC" onclick="cargarInventarioSIC(); setActiveNav('navInvSIC'); return false;"><i class="fas fa-boxes"></i><span>Inv. SIC</span></a>
+                <a href="#" class="nav-pill" id="navImpresoras" onclick="cargarImpresoras(); setActiveNav('navImpresoras'); return false;"><i class="fas fa-print"></i><span>Impresoras</span></a>
+                <a href="#" class="nav-pill" id="navCasosTecnicos" onclick="abrirCasosTecnicos(); setActiveNav('navCasosTecnicos'); return false;"><i class="fas fa-clipboard-list"></i><span>📋 Casos Técnicos</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://servicedesk.grupoaxo.com/WOListView.do'); return false;"><i class="fas fa-headset"></i><span>Service Desk</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('http://axorac0501.tommyd.org.mx/RetailWeb/LoginPage/ASP/LoginPage.aspx'); return false;"><i class="fas fa-shopping-cart"></i><span>APTOS</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://hcm19.sapsf.com/login?company=servicio02'); return false;"><i class="fas fa-users"></i><span>SAP SF</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://gaxo-my.sharepoint.com'); return false;"><i class="fas fa-tasks"></i><span>Mesa Rol</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://gaxo-my.sharepoint.com'); return false;"><i class="fas fa-chart-line"></i><span>GAP</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://www.freeconvert.com/es'); return false;"><i class="fas fa-compress-alt"></i><span>Compresor</span></a>
+                <a href="#" class="nav-pill" onclick="abrirNuevaPestana('https://gaxo-my.sharepoint.com'); return false;"><i class="fas fa-book"></i><span>Manuales</span></a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="search-container" id="searchContainer">
+        <input type="text" class="search-general" id="globalSearch" placeholder="🔍 Búsqueda general...">
+    </div>
+    <div class="active-filters" id="activeFilters"></div>
+    <div class="stats" id="statsContainer">
+        <span id="statsText">Cargando datos...</span>
+        <button class="btn btn-clear" id="clearAllFilters" onclick="clearAllFilters()" style="display:none;">Limpiar</button>
+    </div>
+    
+    <div class="table-wrapper" id="tableView">
+        <table id="dataTable"><thead id="tableHead"></thead><tbody id="tableBody"><tr><td colspan="10" class="no-data">Inicia sesión para ver los datos</td></tr></tbody></table>
+    </div>
+    
+    <!-- IFRAME VIEW -->
+    <div class="iframe-view" id="iframeView">
+        <div class="iframe-toolbar">
+            <button class="iframe-btn" onclick="iframeBack()"><i class="fas fa-arrow-left"></i></button>
+            <button class="iframe-btn" onclick="iframeForward()"><i class="fas fa-arrow-right"></i></button>
+            <button class="iframe-btn" onclick="iframeRefresh()"><i class="fas fa-redo"></i></button>
+            <button class="iframe-btn primary" onclick="iframeOpenNew()"><i class="fas fa-external-link-alt"></i></button>
+            <span class="url-display" id="iframeUrl">https://...</span>
+            <button class="iframe-btn" onclick="volverADatos()"><i class="fas fa-table"></i></button>
+        </div>
+        <div class="iframe-container">
+            <iframe id="contentFrame" src="about:blank" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+            <div class="iframe-loading" id="iframeLoading"><i class="fas fa-spinner fa-spin"></i>Cargando...</div>
+            <div class="iframe-fallback" id="iframeFallback" style="display:none">
+                <h3><i class="fas fa-shield-alt"></i> Restricción de Seguridad</h3>
+                <p>Este sitio no permite visualización en marcos por políticas de seguridad.</p>
+                <a href="#" id="fallbackLink" class="fallback-link" target="_blank"><i class="fas fa-external-link-alt"></i> Abrir en pestaña nueva</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- CASOS TÉCNICOS -->
+    <div class="casos-content" id="casosContent">
+        <div class="casos-card">
+            <div class="casos-header">
+                <h2><i class="fas fa-clipboard-check"></i> Sistema de Casos Técnicos</h2>
+                <p>Documentación técnica, checklist operativo y generación de reportes</p>
+            </div>
+            
+            <div class="casos-form">
+                <!-- Datos Generales -->
+                <div class="casos-section">
+                    <div class="casos-section-title"><i class="fas fa-info-circle"></i> Datos Generales</div>
+                    <div class="casos-grid">
+                        <div class="casos-field">
+                            <label>Folio del Ticket <span class="required">*</span></label>
+                            <input type="text" id="casoFolio" placeholder="Ej. TK-0001" required>
+                        </div>
+                        <div class="casos-field">
+                            <label>Fecha <span class="required">*</span></label>
+                            <input type="date" id="casoFecha" required>
+                        </div>
+                        <div class="casos-field">
+                            <label>Técnico <span class="required">*</span></label>
+                            <input type="text" id="casoTecnico" placeholder="Se auto-completa" readonly>
+                        </div>
+                        <div class="casos-field">
+                            <label>Sucursal/Tienda o Corporativo/Cedis <span class="required">*</span></label>
+                            <select id="casoSucursal" required>
+                                <option value="">-- Seleccionar --</option>
+                                <optgroup label="🏪 Tiendas">
+                                    <option value="Marca Sucursal">Marca Sucursal</option>
+                                    <option value="Tienda 001">Tienda 001</option>
+                                    <option value="Tienda 002">Tienda 002</option>
+                                    <option value="Tienda 003">Tienda 003</option>
+                                </optgroup>
+                                <optgroup label="🏢 Corporativo/Cedis">
+                                    <option value="Servicios Axo">Servicios Axo</option>
+                                    <option value="Corporativo">Corporativo</option>
+                                    <option value="Cedis Central">Cedis Central</option>
+                                    <option value="Cedis Regional">Cedis Regional</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="casos-field">
+                            <label>Área / Usuario <span class="required">*</span></label>
+                            <select id="casoAreaUsuario" required>
+                                <option value="">-- Seleccionar --</option>
+                                <optgroup label="📍 Áreas de Tienda">
+                                    <option value="Cajas">Cajas</option>
+                                    <option value="Oficina">Oficina</option>
+                                    <option value="Site">Site</option>
+                                    <option value="Almacén">Almacén</option>
+                                    <option value="Piso de Venta">Piso de Venta</option>
+                                </optgroup>
+                                <optgroup label="🏢 Corporativo">
+                                    <option value="Corporativo">Corporativo</option>
+                                    <option value="Soporte TI">Soporte TI</option>
+                                    <option value="Administración">Administración</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="casos-field">
+                            <label>Tipo de Equipo / Caso <span class="required">*</span></label>
+                            <select id="casoTipoEquipo" onchange="cargarChecklistCasos()" required>
+                                <option value="">-- Seleccionar equipo --</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Número de Serie con opción Sí/No -->
+                    <div class="casos-field" id="fieldNumeroSerie" style="display:none;margin-top:15px;">
+                        <label>¿El equipo tiene Número de Serie? <span class="required">*</span></label>
+                        <div class="casos-radio-group" style="margin-bottom:10px;">
+                            <label class="casos-radio-label">
+                                <input type="radio" name="casoTieneSerial" value="si" onchange="toggleSerialInput(true)"> Sí
+                            </label>
+                            <label class="casos-radio-label">
+                                <input type="radio" name="casoTieneSerial" value="no" onchange="toggleSerialInput(false)" checked> No
+                            </label>
+                        </div>
+                        <div id="serialInputContainer" style="display:none;">
+                            <input type="text" id="casoNumeroSerie" placeholder="Ej. SN-ABC123456">
+                            <small style="color:#718096;font-size:11px;margin-top:3px;display:block">Obligatorio para impresoras, Verifone, POS, miniprinter y cajón de dinero</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensaje predeterminado -->
+                <div class="casos-section">
+                    <div class="casos-section-title"><i class="fas fa-comment-alt"></i> Mensaje predeterminado</div>
+                    <div class="casos-alert" id="casoMensajePredeterminado">Selecciona un tipo de equipo para cargar el mensaje técnico predeterminado.</div>
+                </div>
+
+                <!-- Checklist con botón inline -->
+                <div class="casos-section">
+                    <div class="casos-section-title">
+                        <span><i class="fas fa-tasks"></i> Checklist técnico</span>
+                        <button class="checklist-toggle-btn inline" id="checklistToggleBtn" onclick="toggleChecklistVisibility()">
+                            <i class="fas fa-chevron-down"></i> Validación opcional
+                        </button>
+                    </div>
+                    <table class="casos-table" id="checklistTable">
+                        <thead><tr><th style="width:65%">Punto de validación</th><th style="width:35%">Resultado</th></tr></thead>
+                        <tbody id="casoChecklistBody"></tbody>
+                    </table>
+                </div>
+
+                <!-- Descripción del Caso -->
+                <div class="casos-section">
+                    <div class="casos-section-title"><i class="fas fa-exclamation-triangle"></i> Descripción del Caso</div>
+                    <div class="casos-grid">
+                        <div class="casos-field">
+                            <label>Descripción breve del caso <span class="required">*</span></label>
+                            <input type="text" id="casoDescripcionBreve" placeholder="Ej. Equipo no responde al encender" required>
+                        </div>
+                        <div class="casos-field">
+                            <label>Error detectado <span class="required">*</span></label>
+                            <input type="text" id="casoErrorDetectado" placeholder="Ej. Error de comunicación / Sin señal" required>
+                        </div>
+                    </div>
+                    <div class="casos-field" style="margin-top:15px;">
+                        <label>Diagnóstico técnico</label>
+                        <textarea id="casoDiagnostico" placeholder="Describe el diagnóstico realizado"></textarea>
+                    </div>
+                    <div class="casos-field" style="margin-top:15px;">
+                        <label>Acciones realizadas</label>
+                        <textarea id="casoAcciones" placeholder="Describe acciones correctivas o preventivas"></textarea>
+                    </div>
+                </div>
+
+                <!-- Evidencia fotográfica -->
+                <div class="casos-section">
+                    <div class="casos-section-title"><i class="fas fa-camera"></i> Evidencia fotográfica</div>
+                    <div class="casos-field">
+                        <label>Subir imágenes (mínimo 1 / máximo 15) <span class="required">*</span></label>
+                        <input type="file" id="casoImagenes" accept="image/*" multiple required>
+                    </div>
+                    <div class="casos-preview">
+                        <strong>Vista previa de evidencias</strong>
+                        <div id="casoPreviewContainer" style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:15px;">
+                            <p style="color:#718096;width:100%">No hay imágenes cargadas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="casos-buttons">
+                <span class="validation-info"><i class="fas fa-info-circle"></i> Los campos marcados con * son obligatorios</span>
+                <button class="casos-btn btn-casos-save" onclick="guardarCasoPDF()">
+                    <i class="fas fa-file-pdf"></i> Generar Reporte PDF
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <footer>
+        Sitio diseñado con fines educativos por <strong>Mario Montiel Zapien</strong>
+        <span class="info-legend">Sitio diseñado con fines informativos</span>
+    </footer>
+</div>
+
+<!-- Modal Filtro -->
+<div class="filter-modal" id="filterModal">
+    <div class="filter-modal-content">
+        <div class="filter-modal-header"><div class="filter-modal-title" id="filterModalTitle">Filtros</div></div>
+        <div class="filter-search-box"><input type="text" class="filter-search-input" id="filterSearch" placeholder="Buscar..."></div>
+        <div class="select-all-container"><label><input type="checkbox" id="selectAllCheckbox" checked> <strong>Seleccionar todo</strong></label></div>
+        <div class="filter-checkbox-list" id="checkboxList"></div>
+        <div class="filter-modal-footer">
+            <button class="btn btn-secondary" onclick="closeFilterModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="applyFilter()">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<!-- CHATBOT -->
+<div class="chatbot-container" id="chatbotContainer">
+    <div class="chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header"><div class="chatbot-title">Asistente Virtual - ArIA</div><button class="chatbot-close" onclick="toggleChatbot()">×</button></div>
+        <iframe id="voiceflowIframe" class="chatbot-iframe" src="about:blank" allow="microphone"></iframe>
+    </div>
+    <button class="chatbot-button" onclick="toggleChatbot()">
+        <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
+    </button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
