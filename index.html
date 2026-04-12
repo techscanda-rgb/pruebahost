@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Service Desk N1</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="login-screen" id="loginScreen">
+    <div class="login-container">
+      <div class="clock-login">
+        <div class="clock-time" id="clockTime">00:00:00</div>
+        <div class="clock-divider"></div>
+        <div class="clock-date" id="clockDate">Cargando fecha...</div>
+      </div>
+
+      <div class="login-box">
+        <h2><i class="fas fa-lock"></i> Ingreso Administrador</h2>
+        <input type="text" id="user" placeholder="Usuario">
+        <input type="password" id="pass" placeholder="Contraseña">
+        <button id="loginBtn" type="button" onclick="login()"><i class="fas fa-sign-in-alt"></i> Ingresar</button>
+        <div class="login-error" id="loginError">❌ Usuario o contraseña incorrectos</div>
+      </div>
+    </div>
+    <div class="login-start-bar" id="loginStartBar">
+      <div class="footer-text">
+        Sitio diseñado con fines educativos por <strong>Mario Montiel Zapien</strong>
+        <span class="info-legend">Sitio diseñado con fines informativos</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="floating-buttons-container" id="floatingButtons">
+    <div class="floating-btn-wrapper requires-login">
+      <div class="popup-window comms-window" id="commsWindow">
+        <div class="comms-header">
+          <span class="comms-title"><i class="fas fa-headset"></i> Llamadas y Mensajes</span>
+          <button class="comms-close" onclick="toggleComms()">×</button>
+        </div>
+        <div class="comms-body">
+          <a href="https://feelsocial.app/chat" target="_blank" rel="noopener noreferrer" class="comms-btn feel" onclick="toggleComms()">
+            <i class="fas fa-comments"></i> 💬 FeelSocial Chat
+          </a>
+          <a href="https://us8.five9.com/login/" target="_blank" rel="noopener noreferrer" class="comms-btn call" onclick="toggleComms()">
+            <i class="fas fa-phone-alt"></i> 📞 Five9 Llamadas
+          </a>
+        </div>
+      </div>
+      <button class="floating-btn btn-comms" type="button" onclick="toggleComms()" title="Llamadas y Mensajes">
+        <i class="fas fa-phone-volume"></i>
+      </button>
+    </div>
+
+    <div class="floating-btn-wrapper requires-login">
+      <div class="popup-window chatbot-window" id="chatbotWindow">
+        <div class="chatbot-header">
+          <div class="chatbot-title">Asistente Virtual - ArIA</div>
+          <button class="chatbot-close" onclick="toggleChatbot()">×</button>
+        </div>
+        <iframe id="voiceflowIframe" class="chatbot-iframe" src="about:blank" allow="microphone" sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox"></iframe>
+      </div>
+      <button class="floating-btn btn-chat" type="button" onclick="toggleChatbot()" title="Chatbot ArIA">
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;fill:#fff;"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"></path></svg>
+      </button>
+    </div>
+
+    <div class="floating-btn-wrapper">
+      <button class="theme-toggle-button" id="themeToggleButton" type="button" onclick="toggleDarkMode()" title="Cambiar tema">
+        <i class="fas fa-sun"></i><i class="fas fa-moon" style="display:none"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="app-shell hidden" id="appShell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-icon"><i class="fas fa-computer"></i></div>
+        <div>
+          <div class="brand-title" id="sidebarBrandTitle">Catálogo</div>
+          <div class="brand-subtitle">Service Desk N1</div>
+        </div>
+      </div>
+
+      <div class="sidebar-user">
+        <div class="user-initials" id="sidebarInitials">SD</div>
+        <div class="sidebar-user-info">
+          <div class="sidebar-user-name" id="sidebarUserName">Usuario</div>
+          <div class="sidebar-user-role">Service Desk N1</div>
+          <div class="sidebar-user-time" id="sidebarUserTime">--:--:--</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <button class="nav-item active" type="button" data-view="dataView" data-title="Catálogo" data-source="catalogo">
+          <i class="fas fa-layer-group"></i><span>Catálogo</span>
+        </button>
+        <button class="nav-item" type="button" data-view="ticketsView" data-title="Tickets Guardados">
+          <i class="fas fa-folder-open"></i><span>Tickets Guardados</span>
+        </button>
+        <button class="nav-item" type="button" data-view="casosView" data-title="Casos Técnicos">
+          <i class="fas fa-file-circle-plus"></i><span>Casos Técnicos</span>
+        </button>
+        <button class="nav-item" type="button" data-view="dataView" data-title="Estructura" data-source="estructura">
+          <i class="fas fa-sitemap"></i><span>Estructura</span>
+        </button>
+        <button class="nav-item" type="button" data-view="dataView" data-title="Wiffi" data-source="wiffi">
+          <i class="fas fa-wifi"></i><span>Wiffi</span>
+        </button>
+        <button class="nav-item" type="button" data-view="dataView" data-title="Inv. SIC" data-source="inventarioSIC">
+          <i class="fas fa-boxes-stacked"></i><span>Inv. SIC</span>
+        </button>
+        <button class="nav-item" type="button" data-view="dataView" data-title="Impresoras" data-source="impresoras">
+          <i class="fas fa-print"></i><span>Impresoras</span>
+        </button>
+        <button class="nav-item" type="button" data-title="Service Desk" data-url="https://servicedesk.grupoaxo.com/WOListView.do">
+          <i class="fas fa-headset"></i><span>Service Desk</span>
+        </button>
+        <button class="nav-item" type="button" data-title="APTOS" data-url="http://axorac0501.tommyd.org.mx/RetailWeb/LoginPage/ASP/LoginPage.aspx">
+          <i class="fas fa-cash-register"></i><span>APTOS</span>
+        </button>
+        <button class="nav-item" type="button" data-title="SAP SF" data-url="https://hcm19.sapsf.com/login?company=servicio02">
+          <i class="fas fa-users"></i><span>SAP SF</span>
+        </button>
+        <button class="nav-item" type="button" data-title="Mesa Rol" data-url="https://gaxo-my.sharepoint.com">
+          <i class="fas fa-list-check"></i><span>Mesa Rol</span>
+        </button>
+        <button class="nav-item" type="button" data-title="GAP" data-url="https://gaxo-my.sharepoint.com">
+          <i class="fas fa-chart-line"></i><span>GAP</span>
+        </button>
+        <button class="nav-item" type="button" data-title="Compresor" data-url="https://www.freeconvert.com/es">
+          <i class="fas fa-file-zipper"></i><span>Compresor</span>
+        </button>
+        <button class="nav-item" type="button" data-title="Manuales" data-url="https://gaxo-my.sharepoint.com">
+          <i class="fas fa-book-open"></i><span>Manuales</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-layout" id="mainLayout">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menuToggle" type="button" title="Mostrar / ocultar menú"><i class="fas fa-bars"></i></button>
+          <div>
+            <div class="topbar-label">Service Desk N1</div>
+            <div class="topbar-title" id="pageTitle">Catálogo</div>
+          </div>
+        </div>
+
+        <div class="topbar-center">
+          <img src="logo-axo.png" alt="logo-axo" class="topbar-center-logo">
+        </div>
+
+        <div class="topbar-right">
+          <div class="user-menu" id="userMenu">
+            <button class="user-menu-btn" id="userMenuBtn" type="button">
+              <div class="user-menu-initials" id="topbarInitials">SD</div>
+              <span id="topbarUserName">Usuario</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="user-menu-dropdown" id="userMenuDropdown">
+              <button type="button" onclick="logout()"><i class="fas fa-right-from-bracket"></i> Cerrar sesión</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-area" id="contentArea">
+        <section class="content-view active" id="dataView">
+          <div class="content-card">
+            <div class="section-head compact data-head-bar">
+              <div class="data-head-info hidden-meta" aria-hidden="true">
+                <h2 id="dataViewTitle">Catálogo</h2>
+                <p id="dataViewDescription">Consulta la información sincronizada desde tus APIs del sistema anterior.</p>
+              </div>
+              <div class="table-toolbar single-line-toolbar">
+                <input type="text" id="globalSearch" placeholder="🔍 Búsqueda general...">
+                <button class="secondary-btn toolbar-btn" type="button" id="clearAllFilters" onclick="clearAllFilters()" style="display:none"><i class="fas fa-filter-circle-xmark"></i> Limpiar</button>
+                <button class="secondary-btn toolbar-btn" type="button" onclick="refreshCurrentData()"><i class="fas fa-rotate"></i> Actualizar</button>
+              </div>
+            </div>
+            <div class="active-filters" id="activeFilters"></div>
+            <div class="stats-strip" id="statsStrip">0 registros</div>
+            <div class="table-shell data-scroll-shell" id="dataTableShell">
+              <table class="data-table" id="apiTable">
+                <thead id="apiTableHead"></thead>
+                <tbody id="apiTableBody">
+                  <tr><td class="empty-state">Inicia sesión para cargar los datos.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-view" id="ticketsView">
+          <div class="content-card">
+            <div class="section-head compact">
+              <div>
+                <h2>Tickets Guardados</h2>
+                <p>Edita, descarga y revisa los tickets guardados desde la API y el almacenamiento local.</p>
+              </div>
+              <div class="table-toolbar">
+                <input type="text" id="ticketSearch" placeholder="Buscar ticket...">
+                <button class="secondary-btn" type="button" onclick="renderTicketsList()"><i class="fas fa-rotate"></i> Actualizar</button>
+              </div>
+            </div>
+            <div class="table-shell no-table-scroll ticket-table-shell">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Folio</th>
+                    <th>Fecha</th>
+                    <th>Técnico</th>
+                    <th>Tienda</th>
+                    <th>Servicio</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="ticketsTableBody">
+                  <tr><td colspan="6" class="empty-state">No hay tickets guardados todavía.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="content-view" id="casosView">
+          <div class="content-card">
+            <div class="section-head simple-head">
+              <div>
+                <h2>Casos Técnicos</h2>
+                <p>Crea, guarda y descarga tickets con el formato actualizado del PDF.</p>
+              </div>
+            </div>
+
+            <div class="case-grid base-grid">
+              <div class="field-group">
+                <label>Folio / Ticket <span>*</span></label>
+                <input type="text" id="casoFolio" inputmode="numeric" pattern="[0-9]*" maxlength="30" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Folio o ticket">
+              </div>
+              <div class="field-group">
+                <label>Fecha <span>*</span></label>
+                <input type="date" id="casoFecha">
+              </div>
+              <div class="field-group">
+                <label>Técnico <span>*</span></label>
+                <input type="text" id="casoTecnico" readonly>
+              </div>
+              <div class="field-group">
+                <label>Marca <span>*</span></label>
+                <input type="text" id="casoMarca" placeholder="Marca">
+              </div>
+              <div class="field-group">
+                <label>Tienda <span>*</span></label>
+                <input type="text" id="casoTienda" placeholder="Sucursal o tienda">
+              </div>
+              <div class="field-group">
+                <label>Tipo de servicio <span>*</span></label>
+                <div class="search-field">
+                  <input list="casoServicioList" id="casoServicio" class="clearable-input" placeholder="Selecciona o escribe servicio">
+                  <button type="button" class="field-clear" data-target="casoServicio"><i class="fas fa-xmark"></i></button>
+                </div>
+                <datalist id="casoServicioList">
+                  <option value="Periféricos FST"></option>
+                  <option value="Red"></option>
+                  <option value="SIC"></option>
+                  <option value="Mibi"></option>
+                  <option value="SAP"></option>
+                  <option value="Reset"></option>
+                  <option value="Service Desk"></option>
+                </datalist>
+              </div>
+            </div>
+
+            <div class="case-panel">
+              <div class="panel-title">Detalle del caso</div>
+              <div class="panel-subtitle">Los campos cambian según el tipo de servicio.</div>
+              <div id="dynamicFields" class="case-grid dynamic-grid">
+                <div class="placeholder-panel">Selecciona un tipo de servicio para mostrar el formulario dinámico.</div>
+              </div>
+            </div>
+
+            <div id="checklistsArea" class="checklists-area hidden">
+              <div class="checklist-card hidden" id="checklist1Card">
+                <div class="checklist-header">
+                  <div>
+                    <h3>Checklist 1</h3>
+                    <p>Opcional</p>
+                  </div>
+                  <button class="checklist-toggle-btn" type="button" onclick="toggleChecklistCard('checklist1Card')">Opcional</button>
+                </div>
+                <div id="checklist1Body"></div>
+              </div>
+
+              <div class="checklist-card hidden" id="checklist2Card">
+                <div class="checklist-header">
+                  <div>
+                    <h3>Checklist 2</h3>
+                    <p>Opcional</p>
+                  </div>
+                  <button class="checklist-toggle-btn" type="button" onclick="toggleChecklistCard('checklist2Card')">Opcional</button>
+                </div>
+                <div id="checklist2Body"></div>
+              </div>
+            </div>
+
+            <div class="case-panel">
+              <div class="panel-head-row">
+                <div>
+                  <div class="panel-title">Evidencias</div>
+                  <div class="panel-subtitle">Puedes seleccionar varias imágenes, agregar más sin borrar las anteriores, arrastrar o pegar desde el portapapeles. No hay límite de imágenes para este servicio.</div>
+                </div>
+                <div class="counter-pill" id="evidenceCounter">0 imágenes</div>
+              </div>
+              <input type="file" id="casoImagenes" accept="image/*" multiple>
+              <div class="dropzone" id="dropzone">
+                <i class="fas fa-image"></i>
+                <strong>Suelta aquí tus evidencias</strong>
+                <span>También puedes pegar imágenes desde el portapapeles.</span>
+              </div>
+              <div class="evidence-grid" id="evidenceGrid"></div>
+            </div>
+
+            <div class="case-actions sticky-bottom-action">
+              <span class="validation-info"><i class="fas fa-circle-info"></i> Los campos marcados con * son obligatorios.</span>
+              <button class="primary-btn big-btn" type="button" id="guardarPdfBtn" onclick="guardarCasoPDF()"><i class="fas fa-file-pdf"></i> Guardar y generar PDF</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer class="app-footer" id="appFooter">
+        <div class="footer-text">
+          Sitio diseñado con fines educativos por <strong>Mario Montiel Zapien</strong>
+          <span class="info-legend">Sitio diseñado con fines informativos</span>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <div class="filter-modal" id="filterModal">
+    <div class="filter-modal-content">
+      <div class="filter-modal-header">
+        <div class="filter-modal-title" id="filterModalTitle">Filtros</div>
+      </div>
+      <div class="filter-search-box"><input type="text" class="filter-search-input" id="filterSearch" placeholder="Buscar..."></div>
+      <div class="select-all-container"><label><input type="checkbox" id="selectAllCheckbox" checked> <strong>Seleccionar todo</strong></label></div>
+      <div class="filter-checkbox-list" id="checkboxList"></div>
+      <div class="filter-modal-footer">
+        <button class="secondary-btn" type="button" onclick="closeFilterModal()">Cancelar</button>
+        <button class="primary-btn" type="button" onclick="applyFilter()">Aceptar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="scriptgris.js"></script>
+</body>
+</html>
